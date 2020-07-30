@@ -323,7 +323,7 @@
             return true;
         }
 
-        public function modifyPrivacyProtection($params=[],$staus=''){
+        public function modifyPrivacyProtection($params=[],$status=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
             $modify = $this->api->modify_whois_privacy($domain,$status == "enable" ? "true" : "false");
