@@ -4,7 +4,7 @@
     $lang           = $module->lang;
     $config         = $module->config;
 
-    $username       = Filter::init("POST/auth-userid","numbers");
+    $username       = Filter::init("POST/username","hclear");
     $password       = Filter::init("POST/password","hclear");
     $whidden_amount = (float) Filter::init("POST/whidden-amount","amount");
     $whidden_curr   = (int) Filter::init("POST/whidden-currency","numbers");
