@@ -4,9 +4,10 @@
         public $api                = false;
         public $config             = [];
         public $lang               = [];
-        public  $error              = NULL;
-        public  $whidden            = [];
+        public  $error             = NULL;
+        public  $whidden           = [];
         public $order              = [];
+        public $docs               = [];
 
         function __construct($args=[]){
 
@@ -99,42 +100,112 @@
             return $result;
         }
 
-        public function register($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false){
-            $domain   = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
-            $sld      = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
+        public function register($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode){
+            $domain             = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
+            $sld                = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
+
+
+            $api_params         = [
+                'Domain'        => $domain,
+                'Year'          => $year
+            ];
+
+            if($eppCode) $api_params['EppCode'] = $eppCode;
+
+            // If the tld contains a document, we process it.
+            $require_docs       = $this->config["settings"]["doc-fields"][$tld] ?? [];
+            if($require_docs)
+            {
+                // If there is a document defined in the tld and the user has not sent a document, we give a warning.
+                if(!$this->docs)
+                {
+                    $this->error = "Required documents for domain name not defined";
+                    return false;
+                }
+
+                // We prepare the obtained document entries to be sent to the domain name provider.
+                foreach($require_docs AS $doc_id => $doc)
+                {
+                    if(!isset($this->docs[$doc_id]) || strlen($this->docs[$doc_id]) < 1)
+                    {
+                        $this->error = 'The document "'.$doc["name"].'" is not specified!';
+                        return false;
+                    }
+
+                    $doc_value = $this->docs[$doc_id];
+
+                    if($doc["type"] == "file") $doc_value = base64_encode(file_get_contents($doc_value));
+
+                    $api_params['RequireInformation'][$doc_id] = $doc_value;
+                }
+            }
+
+
+            $convert_key = [
+                'registrant'        => 'Owner',
+                'administrative'    => 'Admin',
+                'technical'         => 'Tech',
+                'billing'           => 'Bill',
+            ];
+            $contact_types          = array_keys($convert_key);
+
+            foreach($contact_types AS $w_ct)
+            {
+                $ct = $convert_key[$w_ct];
+
+                $api_params["Contacts"][$ct] = [
+                    'name'              => $whois[$w_ct]["FirstName"] ?? '',
+                    'surname'           => $whois[$w_ct]["LastName"] ?? '',
+                    'fullname'          => $whois[$w_ct]["Name"] ?? '',
+                    'company'           => $whois[$w_ct]["Company"] ?? '',
+                    'emailaddr'         => $whois[$w_ct]["EMail"] ?? '',
+                    'address1'          => $whois[$w_ct]["AddressLine1"] ?? '',
+                    'address2'          => $whois[$w_ct]["AddressLine2"] ?? '',
+                    'city'              => $whois[$w_ct]["City"] ?? '',
+                    'state'             => $whois[$w_ct]["State"] ?? '',
+                    'zip'               => $whois[$w_ct]["ZipCode"] ?? '',
+                    'country'           => $whois[$w_ct]["Country"] ?? '',
+                    'telnocc'           => $whois[$w_ct]["PhoneCountryCode"] ?? '',
+                    'telno'             => $whois[$w_ct]["Phone"] ?? '',
+                    'faxnocc'           => $whois[$w_ct]["FaxCountryCode"] ?? '',
+                    'faxno'             => $whois[$w_ct]["Fax"] ?? '',
+                ];
+            }
+
+            $api_params["Dns"] =  array_values($dns); // ['ns1.example.com','ns2.example.com'] etc..
+
+            // Whois Privacy Protection Enable
+            if($wprivacy) $api_params["PrivacyProtection"] = 'enable';
+
 
             // This result should return if the domain name was registered successfully or was previously registered.
 
-            $returnData = [
-                'status' => "SUCCESS",
-                'config' => [
-                    'entityID' => 1,
-                ],
-            ];
+            $response       = $this->api->register_domain($api_params);
 
-            if($wprivacy) $rdata["whois_privacy"] = ['status' => true,'message' => NULL];
+            if($response && $response['status'] == 'successful')
+            {
 
-            return $returnData;
+                $returnData = [
+                    'status' => "SUCCESS",
+                    'config' => [
+                        'entityID' => $response['entity_id'],
+                    ],
+                ];
+
+                if($wprivacy)
+                    $returnData["whois_privacy"] = ['status' => $response['PrivacyProtection']['status'] == 'active','message' => NULL];
+
+                return $returnData;
+            }
+            else
+            {
+                $this->error = $response['message'];
+                return false;
+            }
         }
 
         public function transfer($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode=''){
-            $domain   = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
-            $sld      = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
-
-            
-
-            // This result should return if the domain name was registered successfully or was previously registered.
-
-            $returnData = [
-                'status' => "SUCCESS",
-                'config' => [
-                    'entityID' => 1,
-                ],
-            ];
-
-            if($wprivacy) $rdata["whois_privacy"] = ['status' => true,'message' => NULL];
-
-            return $returnData;
+            return $this->register($domain,$sld,$tld,$year,$dns,$whois,$wprivacy,$eppCode);
         }
 
         public function renewal($params=[],$domain='',$sld='',$tld='',$year=1,$oduedate='',$nduedate=''){
@@ -268,12 +339,46 @@
         public function ModifyWhois($params=[],$whois=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $modify = $this->api->modify_contact($domain,$whois);
-            if(!$modify){
-                $this->error = $this->api->error;
-                return false;
-            }
+            $convert_key = [
+                'registrant'        => 'Owner',
+                'administrative'    => 'Admin',
+                'technical'         => 'Tech',
+                'billing'           => 'Bill',
+            ];
+            $contact_types          = array_keys($convert_key);
 
+            foreach($contact_types AS $w_ct)
+            {
+                $ct = $convert_key[$w_ct];
+                
+                $whois_data = [
+                    'name'              => $whois[$w_ct]["FirstName"] ?? '',
+                    'surname'           => $whois[$w_ct]["LastName"] ?? '',
+                    'fullname'          => $whois[$w_ct]["Name"] ?? '',
+                    'company'           => $whois[$w_ct]["Company"] ?? '',
+                    'emailaddr'         => $whois[$w_ct]["EMail"] ?? '',
+                    'address1'          => $whois[$w_ct]["AddressLine1"] ?? '',
+                    'address2'          => $whois[$w_ct]["AddressLine2"] ?? '',
+                    'city'              => $whois[$w_ct]["City"] ?? '',
+                    'state'             => $whois[$w_ct]["State"] ?? '',
+                    'zip'               => $whois[$w_ct]["ZipCode"] ?? '',
+                    'country'           => $whois[$w_ct]["Country"] ?? '',
+                    'telnocc'           => $whois[$w_ct]["PhoneCountryCode"] ?? '',
+                    'telno'             => $whois[$w_ct]["Phone"] ?? '',
+                    'faxnocc'           => $whois[$w_ct]["FaxCountryCode"] ?? '',
+                    'faxno'             => $whois[$w_ct]["Fax"] ?? '',
+                ];
+                
+                
+
+                $modify = $this->api->modify_contact($domain,$ct,$whois_data);
+                if(!$modify){
+                    $this->error = $this->api->error;
+                    return false;
+                }
+                
+            }
+            
             return true;
         }
 
@@ -453,7 +558,7 @@
             $cdate              = DateManager::format("Y-m-d",$details["creation_date"]);
             $duedate            = DateManager::format("Y-m-d",$details["expiration_date"]);
 
-            $wprivacy           = $details["is_privacy"] != "none" ? ($OrderDetails["is_privacy"] == "on") : "none";
+            $wprivacy           = $details["is_privacy"] != "none" ? ($details["is_privacy"] == "on") : "none";
             if($wprivacy && $wprivacy != "none"){
                 $wprivacy_endtime_i   = isset($details["privacy_endtime"]) ? $details["privacy_endtime"] : "none";
                 if($wprivacy_endtime_i && $wprivacy_endtime_i != "none")
@@ -464,26 +569,41 @@
             $ns2                = isset($details["ns2"]) ? $details["ns2"] : false;
             $ns3                = isset($details["ns3"]) ? $details["ns3"] : false;
             $ns4                = isset($details["ns4"]) ? $details["ns4"] : false;
-            $whois_data         = isset($details["registrant_contact"]) ? $details["registrant_contact"] : [];
+            $whois_data         = isset($details["contacts"]) ? $details["contacts"] : [];
+            $whois              = [];
 
             if($whois_data){
-                $whois                  = [
-                    'FirstName'         =>  $whois_data["name"],
-                    'LastName'          =>  $whois_data["surname"],
-                    'Name'              =>  $whois_data["fullname"],
-                    'Company'           =>  $whois_data["company"] == 'N/A' ? "" : $whois_data["company"],
-                    'EMail'             =>  $whois_data["emailaddr"],
-                    'AddressLine1'      =>  $whois_data["address1"],
-                    'AddressLine2'      =>  isset($whois_data["address2"]) ? $whois_data["address2"] : "",
-                    'City'              =>  $whois_data["city"],
-                    'State'             =>  isset($whois_data["state"]) ? $whois_data["state"] : '',
-                    'ZipCode'           =>  $whois_data["zip"],
-                    'Country'           =>  $whois_data["country"],
-                    'PhoneCountryCode' => $whois_data["telnocc"],
-                    'Phone'            => $whois_data["telno"],
-                    'FaxCountryCode'   => isset($whois_data["faxnocc"]) ? $whois_data["faxnocc"] : "",
-                    'Fax'              => isset($whois_data["faxno"]) ? $whois_data["faxno"] : "",
+                $convert_key = [
+                    'registrant'        => 'Owner',
+                    'administrative'    => 'Admin',
+                    'technical'         => 'Tech',
+                    'billing'           => 'Bill',
                 ];
+                $contact_types          = array_keys($convert_key);
+                
+                foreach($contact_types AS $w_ct)
+                {
+                    $ct                     = $convert_key[$w_ct];
+                    
+                    $whois[$w_ct]             = [
+                        'FirstName'         => $whois_data[$ct]["name"] ?? '',
+                        'LastName'          => $whois_data[$ct]["surname"] ?? '',
+                        'Name'              => $whois_data[$ct]["fullname"] ?? '',
+                        'Company'           => $whois_data[$ct]["company"] ?? '',
+                        'EMail'             => $whois_data[$ct]["emailaddr"] ?? '',
+                        'AddressLine1'      => $whois_data[$ct]["address1"] ?? '',
+                        'AddressLine2'      => $whois_data[$ct]["address2"] ?? '',
+                        'City'              => $whois_data[$ct]["city"] ?? '',
+                        'State'             => $whois_data[$ct]["state"] ?? '',
+                        'ZipCode'           => $whois_data[$ct]["zip"] ?? '',
+                        'Country'           => $whois_data[$ct]["country"] ?? '',
+                        'PhoneCountryCode'  => $whois_data[$ct]["telnocc"] ?? '',
+                        'Phone'             => $whois_data[$ct]["telno"] ?? '',
+                        'FaxCountryCode'    => $whois_data[$ct]["faxnocc"] ?? '',
+                        'Fax'               => $whois_data[$ct]["faxno"] ?? '',
+                    ];
+                }
+                
             }
 
             $result["creation_time"]    = $cdate;
@@ -831,6 +951,324 @@
 
                 }
             }
+            return true;
+        }
+
+        /*
+         *  DNS Record Functions
+        */
+
+        public function getDnsRecords()
+        {
+            $result = [];
+
+            $request = $this->api->dnsListRecords($this->order["options"]["domain"]);
+
+            if($request)
+            {
+                foreach($request AS $r)
+                {
+                    $result[] = [
+                        'identity'      => $r["record_id"], // Sample Dns Record Identity ID e.g : 12345
+                        'type'          => $r["type"], // Record Type e.g : A or MX
+                        'name'          => $r["host"], // Record Host
+                        'value'         => $r["value"], // Record Value
+                        'ttl'           => $r["ttl"], // Record TTL
+                        'priority'      => $r["distance"], // Record Priority
+                    ];
+                }
+            }
+
+
+            return $result;
+
+        }
+
+        public function addDnsRecord($type,$name,$value,$ttl,$priority)
+        {
+            if(!$priority) $priority = 10;
+            if(!$ttl) $ttl = 7207;
+
+            $apply              = $this->api->dnsAddRecord([
+                'domain'        => $this->order["options"]["domain"],
+                'rrtype'        => $type,
+                'rrhost'        => $name,
+                'rrvalue'       => $value,
+                'rrdistance'    => $priority,
+                'rrttl'         => $ttl,
+            ]);
+
+            if(!$apply && $this->api->error){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function updateDnsRecord($type='',$name='',$value='',$identity='',$ttl='',$priority='')
+        {
+            $list = $this->getDnsRecords();
+            if(!$list) return false;
+            $verified = false;
+            foreach($list AS $l) if($l["identity"] == $identity) $verified = true;
+            if(!$verified)
+            {
+                $this->error = "Invalid identity ID";
+                return false;
+            }
+
+            $apply      =        $this->api->dnsUpdateRecord([
+                'domain'        => $this->order["options"]["domain"],
+                'rrid'          => $identity,
+                'rrhost'        => $name,
+                'rrvalue'       => $value,
+                'rrdistance'    => $priority,
+                'rrttl'         => $ttl,
+            ]);
+
+            if(!$apply && $this->api->error){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function deleteDnsRecord($type='',$name='',$value='',$identity='')
+        {
+            $list = $this->getDnsRecords();
+            if(!$list) return false;
+            $verified = false;
+
+            foreach($list AS $l) if($l["identity"] == $identity) $verified = true;
+
+            if(!$verified)
+            {
+                $this->error = "Invalid identity ID";
+                return false;
+            }
+
+            $apply      =        $this->api->dnsDeleteRecord([
+                'domain'        => $this->order["options"]["domain"],
+                'rrid'          => $identity,
+            ]);
+
+            if(!$apply && $this->api->error){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function getDnsSecRecords()
+        {
+            $result = [];
+
+            $request = $this->api->dnsSecListRecords($this->order["options"]["domain"]);
+
+            if($request)
+            {
+                foreach($request AS $r)
+                {
+                    $result[] = [
+                        'identity'      => '',
+                        'digest'        => $r["digest"],
+                        'key_tag'       => $r["key_tag"],
+                        'digest_type'   => $r["digest_type"],
+                        'algorithm'     => $r["algorithm"],
+                    ];
+                }
+            }
+
+
+            return $result;
+
+        }
+
+        public function addDnsSecRecord($digest,$key_tag,$digest_type,$algorithm)
+        {
+            $apply              = $this->api->dnsSecAddRecord([
+                'domain'        => $this->order["options"]["domain"],
+                'digest'        => $digest,
+                'keyTag'        => $key_tag,
+                'digestType'    => $digest_type,
+                'alg'           => $algorithm,
+            ]);
+
+            if(!$apply && $this->api->error){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function deleteDnsSecRecord($digest,$key_tag,$digest_type,$algorithm,$identity='')
+        {
+            $apply      =        $this->api->dnsSecDeleteRecord([
+                'domain'        => $this->order["options"]["domain"],
+                'digest'        => $digest,
+                'keyTag'        => $key_tag,
+                'digestType'    => $digest_type,
+                'alg'           => $algorithm,
+            ]);
+
+            if(!$apply && $this->api->error){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        /*
+         *  Domain and Mail Forwarding Functions
+        */
+
+        public function getForwardingDomain()
+        {
+            $detail     = $this->api->getDomainInfo($this->order["options"]["domain"]);
+
+            if($detail["forward_type"] == "N/A")
+                return [
+                    'status' => false,
+                ];
+            else
+            {
+                $forward_url        = $detail["forward_url"];
+                if(stristr($forward_url,'https://'))
+                    $protocol = "https";
+                else
+                    $protocol   = "http";
+
+                if(stristr($detail["reply"]["forward_type"],'302'))
+                    $method = 302;
+                else
+                    $method = 301;
+
+
+                $domain         = str_replace($protocol."://","",$forward_url);
+
+                if($domain == $this->order["options"]["domain"]) return ['status' => false];
+
+
+
+                return [
+                    'status' => true,
+                    'method'    => $method,
+                    'protocol'  => $protocol,
+                    'domain'    => $domain,
+                ];
+            }
+        }
+
+        public function setForwardingDomain($protocol='',$method='',$domain='')
+        {
+            $apply      = $this->api->domainForward([
+                'domain'        => $this->order["options"]["domain"],
+                'protocol'      => $protocol,
+                'address'       => $domain,
+                'method'        => $method,
+            ]);
+
+            if(!$apply)
+            {
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function cancelForwardingDomain()
+        {
+            $apply      = $this->api->cancelDomainForward([
+                'domain'        => $this->order["options"]["domain"]
+            ]);
+
+            if(!$apply){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function getEmailForwards()
+        {
+            $result = [];
+
+            $request = $this->api->listEmailForwards($this->order["options"]["domain"]);
+
+            if($request && isset($request["addresses"]) && $request["addresses"])
+            {
+                foreach($request["addresses"] AS $l)
+                {
+                    $to = $l["forwards_to"] ?? '';
+
+                    if(is_array($to)) $to = $to[0];
+
+                    $result[] = [
+                        'identity'      => '',
+                        'prefix'        => $l["username"],
+                        'target'        => $to,
+                    ];
+
+                }
+            }
+
+            return $result;
+        }
+
+        public function addForwardingEmail($prefix='',$target='')
+        {
+            $apply      = $this->api->configureEmailForward([
+                'domain'        => $this->order["options"]["domain"],
+                'email'         => $prefix,
+                'forward1'      => $target,
+            ]);
+
+            if(!$apply)
+            {
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function updateForwardingEmail($prefix='',$target='',$target_new='',$identity='')
+        {
+            $apply      = $this->api->configureEmailForward([
+                'domain'        => $this->order["options"]["domain"],
+                'email'         => $prefix,
+                'forward1'      => $target,
+                'identity'      => $identity,
+            ]);
+
+            if(!$apply)
+            {
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            return true;
+        }
+
+        public function deleteForwardingEmail($prefix='',$target='',$identity='')
+        {
+            $apply      = $this->api->deleteEmailForward([
+                'domain'        => $this->order["options"]["domain"],
+                'email'         => $prefix,
+            ]);
+
+            if(!$apply){
+                $this->error = $this->api->error;
+                return false;
+            }
+
             return true;
         }
 
