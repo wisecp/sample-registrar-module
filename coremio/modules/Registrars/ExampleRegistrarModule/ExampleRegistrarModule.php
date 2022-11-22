@@ -44,6 +44,12 @@
             return $this;
         }
 
+        public function define_docs($docs=[])
+        {
+            $this->docs = $docs;
+        }
+        
+
         private function setConfig($username,$password,$sandbox){
             $this->config["settings"]["username"]   = $username;
             $this->config["settings"]["password"]   = $password;
