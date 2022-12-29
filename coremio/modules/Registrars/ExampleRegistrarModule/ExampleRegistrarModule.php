@@ -106,7 +106,7 @@
             return $result;
         }
 
-        public function register($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode){
+        public function register($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode=''){
             $domain             = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
             $sld                = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
 
