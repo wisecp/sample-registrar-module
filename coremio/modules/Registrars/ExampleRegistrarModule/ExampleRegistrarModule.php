@@ -224,7 +224,6 @@
         }
 
         public function cost_prices($type='domain'){
-            if(!$this->config["settings"]["adp"]) return false;
 
             $prices    = $this->api->cost_prices();
             if(!$prices){
