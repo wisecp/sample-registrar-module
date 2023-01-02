@@ -223,47 +223,6 @@
             return true;
         }
 
-        public function cost_prices($type='domain'){
-
-            $prices    = $this->api->cost_prices();
-            if(!$prices){
-                $this->error = $this->api->error;
-                return false;
-            }
-
-            $result = [];
-
-            if($type == "domain"){
-                foreach($prices AS $name=>$val){
-                    $result[$name] = [
-                        'register' => $val["register"],
-                        'transfer' => $val["transfer"],
-                        'renewal'  => $val["renewal"],
-                    ];
-                }
-            }
-            
-            return $result;
-        }
-
-        public function NsDetails($params=[]){
-            $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
-
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
-
-            $returns = [];
-
-            if(isset($details["ns1"])) $returns["ns1"] = $details["ns1"];
-            if(isset($details["ns2"])) $returns["ns2"] = $details["ns2"];
-            if(isset($details["ns3"])) $returns["ns3"] = $details["ns3"];
-            if(isset($details["ns4"])) $returns["ns4"] = $details["ns4"];
-            return $returns;
-        }
-
         public function ModifyDns($params=[],$dns=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -682,6 +641,29 @@
                 }
             }
 
+            return $result;
+        }
+        
+        public function cost_prices($type='domain'){
+
+            $prices    = $this->api->cost_prices();
+            if(!$prices){
+                $this->error = $this->api->error;
+                return false;
+            }
+
+            $result = [];
+
+            if($type == "domain"){
+                foreach($prices AS $name=>$val){
+                    $result[$name] = [
+                        'register' => $val["register"],
+                        'transfer' => $val["transfer"],
+                        'renewal'  => $val["renewal"],
+                    ];
+                }
+            }
+            
             return $result;
         }
         
