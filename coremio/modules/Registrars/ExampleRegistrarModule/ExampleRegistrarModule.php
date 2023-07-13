@@ -1,6 +1,7 @@
 <?php
 
-    class ExampleRegistrarModule {
+    class ExampleRegistrarModule extends RegistrarModule
+    {
         public $api                = false;
         public $config             = [];
         public $lang               = [];
@@ -132,9 +133,9 @@
                 // We prepare the obtained document entries to be sent to the domain name provider.
                 foreach($require_docs AS $doc_id => $doc)
                 {
-                    if(!isset($this->docs[$doc_id]) || strlen($this->docs[$doc_id]) < 1)
+                    if(($doc["required"] ?? false) && (!isset($this->docs[$doc_id]) || strlen($this->docs[$doc_id]) < 1))
                     {
-                        $this->error = 'The document "'.$doc["name"].'" is not specified!';
+                        $this->error = 'The document "'.self::get_doc_lang($doc["name"]).'" is not specified!';
                         return false;
                     }
 

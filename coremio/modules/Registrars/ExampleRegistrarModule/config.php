@@ -52,20 +52,27 @@ return [
             'us'    => [
                 'field1' => [
                     'type' => 'select',
-                    'name' => 'Choose a option',
+                    // required: If it is a required parameter for the module, make it mandatory.
+                    'required' => true, // Required only for order steps.
+                    'name' => 'Choose a option', // Multiple language: ['en' => 'Choose a option', 'de' => 'Wählen Sie eine Option']
+                    'description' => 'Sample description for field', // Multiple language: ['en' => 'English desc' , 'de' => 'Deutschland description']
                     'options' => [
-                        'option1' => 'Sample option 1',
-                        'option2' => 'Sample option 2',
-                        'option3' => 'Sample option 3',
+                        'option1' => 'Sample option 1', // ['en' => 'Sample option 1','de' => 'Beispieloption 1']
+                        'option2' => 'Sample option 2', // ['en' => 'Sample option 1','de' => 'Beispieloption 1']
+                        'option3' => 'Sample option 3', // ['en' => 'Sample option 1','de' => 'Beispieloption 1']
                     ],
                 ],
                 'field2' => [
                     'type' => 'text',
-                    'name' => 'An example input box',
+                    'required' => false, // Required only for order steps.
+                    'name' => 'An example input box', // Multiple language: ['en' => 'An example input box', 'de' => 'Ein Beispiel-Eingabefeld']
+                    'description' => 'Sample description for field', // Multiple language: ['en' => 'English desc' , 'de' => 'Deutschland description']
                 ],
                 'field3' => [
                     'type' => 'file',
+                    'required' => true, // Required only for order steps.
                     'name' => 'An example input file',
+                    'description' => 'Sample description for field', // Multiple language: ['en' => 'English desc' , 'de' => 'Deutschland description']
                     'allowed_ext' => 'jpg,jpeg,png,gif,zip,rar',
                     'max_file_size' => 3,
                 ],
