@@ -227,7 +227,7 @@ function ExampleRegistrarModule_open_tab(elem, tabName){
                 $(".select-user").select2({
                     placeholder: "<?php echo __("admin/invoices/create-select-user"); ?>",
                     ajax: {
-                        url: '<?php echo Controllers::$init->AdminCRLink("orders"); ?>?operation=select-users.json',
+                        url: '<?php echo Controllers::$init->AdminCRLink("orders"); ?>?operation=user-list.json',
                         dataType: 'json',
                         data: function (params) {
                             var query = {
