@@ -70,7 +70,18 @@ return [
                 ],
                 'field3' => [
                     'type' => 'file',
-                    'required' => true, // Required only for order steps.
+                    // Required only for order steps.
+                    /*
+                     * If the target field is not empty and you want it to be mandatory, do the following
+                     * 'required' =>  ['field1' => "NOT_EMPTY"],
+                     * Or you can specify that it is required if it is equal to a specified value.
+                     * 'required' => ['field1' => ["option1","option3"]],
+                     * Or if the type of the target field is a "text" and it contains the value you type:
+                     * 'required' => ['fieldText1' => ["Phrase 1","Phrase 2"]],
+                     * Or to say that it is mandatory no matter what:
+                     * 'required' => true,
+                     */
+                    'required' => true,
                     'name' => 'An example input file',
                     'description' => 'Sample description for field', // Multiple language: ['en' => 'English desc' , 'de' => 'Deutschland description']
                     'allowed_ext' => 'jpg,jpeg,png,gif,zip,rar',
