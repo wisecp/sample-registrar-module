@@ -2,119 +2,164 @@
 
     class ExampleRegistrarModule extends RegistrarModule
     {
-        public $api                = false;
-        public $config             = [];
-        public $lang               = [];
-        public  $error             = NULL;
-        public  $whidden           = [];
-        public $order              = [];
-        public $docs               = [];
+        // Variables and functions previously defined in this class were transferred to the ‘RegistrarModule’ parent.
+        // The $this->api variable defined in functions is an imaginary variable.
 
         function __construct($args=[]){
-
-            $this->config   = Modules::Config("Registrars",__CLASS__);
-            $this->lang     = Modules::Lang("Registrars",__CLASS__);
-
-            if(!class_exists("ExampleRegistrarModule_API")){
-                // Calling API files
-                include __DIR__.DS."api.php";
-            }
-
-            if(isset($this->config["settings"]["whidden-amount"])){
-                $whidden_amount   = $this->config["settings"]["whidden-amount"];
-                $whidden_currency = $this->config["settings"]["whidden-currency"];
-                $this->whidden["amount"] = $whidden_amount;
-                $this->whidden["currency"] = $whidden_currency;
-            }
-
-            // Set API Credentials 
-
-            $username   = $this->config["settings"]["username"];
-            $password   = $this->config["settings"]["password"];
-            $password   = Crypt::decode($password,Config::get("crypt/system"));
-
-            $sandbox    = (bool)$this->config["settings"]["test-mode"];
-            $this->api  =  new ExampleRegistrarModule_API($sandbox);
-
-            $this->api->set_credentials($username,$password);
-
+            $this->name = __CLASS__;
+            parent::__construct(__CLASS__);
         }
 
-        public function set_order($order=[]){
-            $this->order = $order;
-            return $this;
-        }
-
-        public function define_docs($docs=[])
+        public function config_fields($data=[])
         {
-            $this->docs = $docs;
+            // $data --               Retrieves previously saved data.
+            // Example              : echo isset($data["example1"]) ? $data["example1"] : NULL;
+            // 'name'               : Name of the Configuration option
+            // 'description'        : Description of the configuration option
+            // 'type'               : Type of configuration optio
+            // 'width'              : Width of configuration option, percent % (5,10,20,30,40,50,...100 vb)
+            // 'rows'               : Number of lines of text field type
+            // 'value'              : Default Value
+            // 'placeholder'        : Value to appear if field is left blank
+            // 'options'            : The value that should be defined in String or Array type
+            // 'checked'            : Used to determine the status of approval box, true or false
+            // 'is_tooltip'         : Shows the description information in balloon, true or false should be written
+            // 'dec_pos'            : Determines the position of description information, type "L" to show under the name, type 'R' to show under the item
+
+            return [
+                'example1'          => [
+                    'name'              => "Text Box",
+                    'description'       => "Description for text box field",
+                    'type'              => "text",
+                    'width'             => "50",
+                    'value'             => "sample",
+                    'placeholder'       => "Sample placeholder",
+                ],
+                'example2'          => [
+                    'name'              => "Password Box",
+                    'description'       => "Description for password box field",
+                    'type'              => "password",
+                    'width'             => "50",
+                    'value'             => "sample",
+                    'placeholder'       => "Sample placeholder",
+                ],
+                'example3'          => [
+                    'name'              => "Confirm Button",
+                    'description'       => "Description for confirm button",
+                    'type'              => "approval",
+                    'checked'           => true,
+                ],
+                'example4'          => [
+                    'name'              => "Drop-down Menu 1",
+                    'description'       => "Description for Drop-down menu 1",
+                    'type'              => "dropdown",
+                    'options'           => "Option 1,Option 2,Option 3,Option 4",
+                    'value'             => "Option 2",
+                ],
+                'example5'          => [
+                    'name'              => "Drop-down Menu 2",
+                    'description'       => "Description for Drop-down menu 2",
+                    'type'              => "dropdown",
+                    'options'           => [
+                        'opt1'     => "Option 1",
+                        'opt2'     => "Option 2",
+                        'opt3'     => "Option 3",
+                        'opt4'     => "Option 4",
+                    ],
+                    'value'             => "opt2",
+                ],
+                'example6'          => [
+                    'name'              => "Circular (Radio) Button 1",
+                    'description'       => "Description for Circular (Radio) Button 1",
+                    'width'             => 40,
+                    'description_pos'   => 'L',
+                    'is_tooltip'        => true,
+                    'type'              => "radio",
+                    'options'           => "Option 1,Option 2,Option 3,Option 4",
+                    'value'             => "Option 2",
+                ],
+                'example7'          => [
+                    'name'              => "Circular (Radio) Button 2",
+                    'description'       => "Description for Circular (Radio) Button 2",
+                    'description_pos'   => 'L',
+                    'is_tooltip'        => true,
+                    'type'              => "radio",
+                    'options'           => [
+                        'sec1'     => "Option 1",
+                        'sec2'     => "Option 2",
+                        'sec3'     => "Option 3",
+                        'sec4'     => "Option 4",
+                    ],
+                    'value'             => "sec2",
+                ],
+                'example8'          => [
+                    'name'              => "Text Field",
+                    'description'       => "Description for Text Field",
+                    'rows'              => "3",
+                    'type'              => "textarea",
+                    'value'             => "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
+                    'placeholder'       => "Sample placeholder",
+                ],
+            ];
         }
-        
 
-        private function setConfig($username,$password,$sandbox){
-            $this->config["settings"]["username"]   = $username;
-            $this->config["settings"]["password"]   = $password;
-            $this->config["settings"]["test-mode"]  = $sandbox;
-            $this->api = new ExampleRegistrarModule_API($sandbox);
-
-            $this->api->set_credentials($username,$password);
-
-        }
-
+        // Use this function if you want a test connection button to appear in the settings (Optional)
         public function testConnection($config=[]){
-            $username   = $config["settings"]["username"];
-            $password   = $config["settings"]["password"];
-            $sandbox    = $config["settings"]["test-mode"];
+            $username   = $config["settings"]["example1"];
+            $password   = $config["settings"]["example2"];
+            $sandbox    = $config["settings"]["example3"];
 
             if(!$username || !$password){
-                $this->error = $this->lang["error6"];
+                $this->error = "Please define the API information."; # or $this->lang["error-message-variable"];
                 return false;
             }
 
-            $password  = Crypt::decode($password,Config::get("crypt/system"));
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            $this->setConfig($username,$password,$sandbox);
-
-            if(!$this->api->login()){
-                $this->error = $this->api->error;
-                return false;
-            }
-            
-            return true;
+            return true; // test successful
         }
 
-
+        // Use this method if domain availability checking is supported. (Optional)
         public function questioning($sld=NULL,$tlds=[]){
-            if($sld == '' || empty($tlds)){
-                $this->error = $this->lang["error2"];
-                return false;
-            }
             $sld = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
             if(!is_array($tlds)) $tlds = [$tlds];
 
-            $servers            = Registrar::whois_server($tlds);
+            $result         = [];
 
-            $result = [];
-            foreach ($tlds AS $t){
-                if(isset($servers[$t]["host"]) && isset($servers[$t]["available_pattern"]))
-                    $questioning = Registrar::questioning($sld,$t,$servers[$t]["host"],43,$servers[$t]["available_pattern"]);
-                else
-                    $questioning = false;
+            // $tlds example array output : ['com','net','org']
 
-                $result[$t] = ['status' => $questioning['status']];
+            $result['com'] = [
+                'status'        => "unavailable",
+            ];
 
-            }
+            $result['net'] = [
+                'status'        => "available",
+            ];
+
+            $result['org'] = [
+                'status'        => "unavailable",
+                'premium'       => true,
+                'premium_price' => [
+                    'amount' => 12345.6789,
+                    'currency' => 'USD',
+                ]
+            ];
+
             return $result;
         }
 
+        // Required function
         public function register($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode=''){
             $domain             = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
             $sld                = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
 
-
             $api_params         = [
                 'Domain'        => $domain,
-                'Year'          => $year
+                'Year'          => $year,
             ];
 
             if($eppCode) $api_params['EppCode'] = $eppCode;
@@ -211,10 +256,12 @@
             }
         }
 
+        // Required function
         public function transfer($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode=''){
             return $this->register($domain,$sld,$tld,$year,$dns,$whois,$wprivacy,$eppCode);
         }
 
+        // Required function
         public function renewal($params=[],$domain='',$sld='',$tld='',$year=1,$oduedate='',$nduedate=''){
             $domain   = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
             $sld      = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
@@ -224,6 +271,7 @@
             return true;
         }
 
+        // Required function
         public function ModifyDns($params=[],$dns=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -238,69 +286,82 @@
             return true;
         }
 
+        // Optional function
         public function CNSList($params=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $get_list    = $this->api->get_child_nameservers($domain);
-            if(!$get_list && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            $data     = [];
-            $i        = 0;
-
-           if($get_list){
-                foreach($get_list AS $row){
-                    $i +=1;
-                    $data[$i] = ['ns' => $row["nameserver"],'ip' => $row["ip_address"]];
-                }
-           }
-            return $data;
+            return [
+                [
+                    'ns' => "ns1.example.com",
+                    'ip' => "215.104.29.144",
+                ],
+                [
+                    'ns' => "ns2.example.com",
+                    'ip' => "177.19.63.247",
+                ],
+                [
+                    'ns' => "ns3.example.com",
+                    'ip' => "216.186.233.125",
+                ],
+                [
+                    'ns' => "ns4.example.com",
+                    'ip' => "208.203.151.89",
+                ]
+            ];
         }
 
+        // Optional function (Required if the CNSList function is defined.)
         public function addCNS($params=[],$ns='',$ip=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
             $ns         = idn_to_ascii($ns,0,INTL_IDNA_VARIANT_UTS46);
 
-            $addCNS = $this->api->add_child_nameserver($domain,$ns,$ip);
-            if(!$addCNS){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
+
 
             return ['ns' => $ns,'ip' => $ip];
         }
-        
+
+        // Optional function (Required if the CNSList function is defined.)
         public function ModifyCNS($params=[],$old=[],$new_ns='',$new_ip=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
             $old_ns      = idn_to_ascii($old["ns"],0,INTL_IDNA_VARIANT_UTS46);
             $new_ns      = idn_to_ascii($new_ns,0,INTL_IDNA_VARIANT_UTS46);
 
-            $modify     = $this->api->modify_child_nameserver($domain,$old_ns,$new_ns,$new_ip);
-            if(!$modify){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            return true;
+            return ['ns' => $new_ns,'ip' => $new_ip];
         }
 
+        // Optional function (Required if the CNSList function is defined.)
         public function DeleteCNS($params=[],$ns='',$ip=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
             $ns         = idn_to_ascii($ns,0,INTL_IDNA_VARIANT_UTS46);
 
-            $delete     = $this->api->delete_child_nameserver($domain,$ns,$ip);
-            if(!$delete){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
             
             return true;
         }
 
-
+        // Required function
         public function ModifyWhois($params=[],$whois=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -310,6 +371,7 @@
                 'technical'         => 'Tech',
                 'billing'           => 'Bill',
             ];
+
             $contact_types          = array_keys($convert_key);
 
             foreach($contact_types AS $w_ct)
@@ -343,34 +405,18 @@
                 }
                 
             }
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
+
             
             return true;
         }
 
-        public function getWhoisPrivacy($params=[]){
-            $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
-
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
-
-            return $details["is_privacy"] == "on" ? "active" : "passive";
-        }
-
-        public function getTransferLock($params=[]){
-            $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
-
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
-
-            return $details["transfer_lock"] == "on" ? true : false;
-        }
-
+        // Required function
         public function isInactive($params=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -382,17 +428,21 @@
             return $details["status"] !== "active" ? true : false;
         }
 
+        // Required function
         public function ModifyTransferLock($params=[],$status=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
             $modify     = $this->api->modify_transfer_lock($domain,$status == "enable" ? "locked" : "unlocked");
-            if(!$modify){
+            if(!$modify)
+            {
                 $this->error = $this->api->error;
                 return false;
             }
+
             return true;
         }
 
+        // Required function (Return true if Whois privacy is not supported)
         public function modifyPrivacyProtection($params=[],$status=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -405,6 +455,7 @@
             return true;
         }
 
+        // Required function (Return true if Whois privacy is not supported)
         public function purchasePrivacyProtection($params=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -417,30 +468,35 @@
             return true;
         }
 
+        // Optional function
         public function suspend($params=[]){
             return true;
         }
+
+        // Optional function
         public function unsuspend($params=[]){
             return true;
         }
+
+        // Optional function
         public function terminate($params=[]){
             return true;
         }
 
+        // Required function
         public function getAuthCode($params=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            $authCode   = $details["AuthCode"];
-
-            return $authCode;
+            return 'testAuthCode123';
         }
 
+        // Optional function
         public function modifyAuthCode($params=[],$authCode=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
@@ -453,14 +509,21 @@
             return true;
         }
 
+        // Required function
         public function sync($params=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "error message here";
+            return false;
+            */
+
+            $details            = [
+                'creation_date'     => "2023-05-25",
+                'expiration_date'   => "2024-05-25",
+                'status'            => "Expired",
+            ];
 
             $start              = DateManager::format("Y-m-d",$details["creation_date"]);
             $end                = DateManager::format("Y-m-d",$details["expiration_date"]);
@@ -472,169 +535,217 @@
                 'status'        => "unknown",
             ];
 
-            if($status == "active"){
+            if($status == "Active")
                 $return_data["status"] = "active";
-            }elseif($status == "expired")
+            elseif($status == "Expired")
                 $return_data["status"] = "expired";
+            elseif($status == "Transferred-elsewhere")
+                $return_data["status"] = "transferred";
+
 
             return $return_data;
 
         }
 
-        public function transfer_sync($params=[]){
+        // Required function
+        public function transfer_sync($params=[])
+        {
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /* Failed Transfer:
+            // Sample error message:
+            $this->error = "Failed Transfer";
+            return false;
+            */
 
-            $start              = DateManager::format("Y-m-d",$details["creation_date"]);
-            $end                = DateManager::format("Y-m-d",$details["expiration_date"]);
-            $status             = $details["status"];
-
-            $return_data    = [
-                'creationtime'  => $start,
-                'endtime'       => $end,
-                'status'        => "unknown",
+            // Waiting Transfer:
+            $details            = [
+                'creation_date'     => "2024-05-25",
+                'expiration_date'   => "",
+                'status'            => "Pending",
             ];
 
-            if($status == "active"){
-                $return_data["status"] = "active";
-            }elseif($status == "expired")
-                $return_data["status"] = "expired";
+            /* Completed Transfer:
+            $details            = [
+                'creation_date'     => "2024-05-25",
+                'expiration_date'   => "2025-05-25",
+                'status'            => "Completed",
+            ];
+            */
+
+            $status             = $details["status"];
+
+
+            $return_data    = [
+                'creationtime'  => $details["creation_date"],
+                'endtime'       => $details["expiration_date"],
+                'status'        => $status == "Completed" ? "active" : "pending",
+            ];
+
 
             return $return_data;
 
         }
 
+        // Optional function
         public function get_info($params=[]){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $details    = $this->api->get_details($domain);
-            if(!$details){
-                $this->error = $this->api->error;
-                return false;
-            }
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            $result             = [];
-
-            $cdate              = DateManager::format("Y-m-d",$details["creation_date"]);
-            $duedate            = DateManager::format("Y-m-d",$details["expiration_date"]);
-
-            $wprivacy           = $details["is_privacy"] != "none" ? ($details["is_privacy"] == "on") : "none";
-            if($wprivacy && $wprivacy != "none"){
-                $wprivacy_endtime_i   = isset($details["privacy_endtime"]) ? $details["privacy_endtime"] : "none";
-                if($wprivacy_endtime_i && $wprivacy_endtime_i != "none")
-                    $wprivacy_endtime   = DateManager::format("Y-m-d",$details["privacy_endtime"]);
-            }
-
-            $ns1                = isset($details["ns1"]) ? $details["ns1"] : false;
-            $ns2                = isset($details["ns2"]) ? $details["ns2"] : false;
-            $ns3                = isset($details["ns3"]) ? $details["ns3"] : false;
-            $ns4                = isset($details["ns4"]) ? $details["ns4"] : false;
-            $whois_data         = isset($details["contacts"]) ? $details["contacts"] : [];
-            $whois              = [];
-
-            if($whois_data){
-                $convert_key = [
-                    'registrant'        => 'Owner',
-                    'administrative'    => 'Admin',
-                    'technical'         => 'Tech',
-                    'billing'           => 'Bill',
-                ];
-                $contact_types          = array_keys($convert_key);
-                
-                foreach($contact_types AS $w_ct)
-                {
-                    $ct                     = $convert_key[$w_ct];
-                    
-                    $whois[$w_ct]             = [
-                        'FirstName'         => $whois_data[$ct]["name"] ?? '',
-                        'LastName'          => $whois_data[$ct]["surname"] ?? '',
-                        'Name'              => $whois_data[$ct]["fullname"] ?? '',
-                        'Company'           => $whois_data[$ct]["company"] ?? '',
-                        'EMail'             => $whois_data[$ct]["emailaddr"] ?? '',
-                        'AddressLine1'      => $whois_data[$ct]["address1"] ?? '',
-                        'AddressLine2'      => $whois_data[$ct]["address2"] ?? '',
-                        'City'              => $whois_data[$ct]["city"] ?? '',
-                        'State'             => $whois_data[$ct]["state"] ?? '',
-                        'ZipCode'           => $whois_data[$ct]["zip"] ?? '',
-                        'Country'           => $whois_data[$ct]["country"] ?? '',
-                        'PhoneCountryCode'  => $whois_data[$ct]["telnocc"] ?? '',
-                        'Phone'             => $whois_data[$ct]["telno"] ?? '',
-                        'FaxCountryCode'    => $whois_data[$ct]["faxnocc"] ?? '',
-                        'Fax'               => $whois_data[$ct]["faxno"] ?? '',
-                    ];
-                }
-                
-            }
-
-            $result["creation_time"]    = $cdate;
-            $result["end_time"]         = $duedate;
-
-            if(isset($wprivacy) && $wprivacy != "none"){
-                $result["whois_privacy"] = ['status' => $wprivacy ? "enable" : "disable"];
-                if(isset($wprivacy_endtime) && $wprivacy_endtime) $result["whois_privacy"]["end_time"] = $wprivacy_endtime;
-            }
-
-            if(isset($ns1) && $ns1) $result["ns1"] = $ns1;
-            if(isset($ns2) && $ns2) $result["ns2"] = $ns2;
-            if(isset($ns3) && $ns3) $result["ns3"] = $ns3;
-            if(isset($ns4) && $ns4) $result["ns4"] = $ns4;
-            if(isset($whois) && $whois) $result["whois"] = $whois;
-
-            $result["transferlock"] = $details["transfer_lock"] == "on";
-
-            if(isset($details["child_nameservers"])){
-                $CNSList = $details["child_nameservers"];
-                $cnsx  = [];
-                $i       = 0;
-                foreach($CNSList AS $k=>$v){
-                    $i+=1;
-                    $cnsx[$i] = ['ns' => $k,'ip' => $v];
-                }
-                $result["cns"] = $cnsx;
-            }
-
-            return $result;
+            return [
+                'creation_time'         => "2023-05-25", // Required
+                'end_time'              => "2024-05-25", // Required
+                'ns1'                   => "ns1.example.com", // Required
+                'ns2'                   => "ns2.example.com", // Required
+                'ns3'                   => "ns3.example.com", // Optional
+                'ns4'                   => "ns4.example.com", // Optional
+                'whois'                 => [ // Required
+                    'registrant'        => [
+                        'FirstName'         => 'John',
+                        'LastName'          => 'Doe',
+                        'Name'              => 'John Doe',
+                        'Company'           => 'WISECP LLC',
+                        'EMail'             => 'info@example.com',
+                        'Country'           => 'US',
+                        'City'              => 'Newark',
+                        'State'             => 'Delaware',
+                        'AddressLine1'      => '112 Capitol Trail Suite A747',
+                        'AddressLine2'      => '',
+                        'ZipCode'           => '19711',
+                        'PhoneCountryCode'  => '1',
+                        'Phone'             => '0123456789',
+                        'FaxCountryCode'    => '',
+                        'Fax'               => '',
+                    ],
+                    'administrative'    => [
+                        'FirstName'         => 'John',
+                        'LastName'          => 'Doe',
+                        'Name'              => 'John Doe',
+                        'Company'           => 'WISECP LLC',
+                        'EMail'             => 'info@example.com',
+                        'Country'           => 'US',
+                        'City'              => 'Newark',
+                        'State'             => 'Delaware',
+                        'AddressLine1'      => '112 Capitol Trail Suite A747',
+                        'AddressLine2'      => '',
+                        'ZipCode'           => '19711',
+                        'PhoneCountryCode'  => '1',
+                        'Phone'             => '0123456789',
+                        'FaxCountryCode'    => '',
+                        'Fax'               => '',
+                    ],
+                    'technical'         => [
+                        'FirstName'         => 'John',
+                        'LastName'          => 'Doe',
+                        'Name'              => 'John Doe',
+                        'Company'           => 'WISECP LLC',
+                        'EMail'             => 'info@example.com',
+                        'Country'           => 'US',
+                        'City'              => 'Newark',
+                        'State'             => 'Delaware',
+                        'AddressLine1'      => '112 Capitol Trail Suite A747',
+                        'AddressLine2'      => '',
+                        'ZipCode'           => '19711',
+                        'PhoneCountryCode'  => '1',
+                        'Phone'             => '0123456789',
+                        'FaxCountryCode'    => '',
+                        'Fax'               => '',
+                    ],
+                    'billing'           => [
+                        'FirstName'         => 'John',
+                        'LastName'          => 'Doe',
+                        'Name'              => 'John Doe',
+                        'Company'           => 'WISECP LLC',
+                        'EMail'             => 'info@example.com',
+                        'Country'           => 'US',
+                        'City'              => 'Newark',
+                        'State'             => 'Delaware',
+                        'AddressLine1'      => '112 Capitol Trail Suite A747',
+                        'AddressLine2'      => '',
+                        'ZipCode'           => '19711',
+                        'PhoneCountryCode'  => '1',
+                        'Phone'             => '0123456789',
+                        'FaxCountryCode'    => '',
+                        'Fax'               => '',
+                    ],
+                ],
+                'whois_privacy'         => [ // Optional: (If whois privacy is never used, don't define this index.)
+                    'status'            => "enable", // (enable or disable)
+                    'end_time'          => "2024-05-25",
+                ],
+                'transferlock'          => true, // Required: (true or false)
+            ];
 
         }
-        
+
+        // Optional function
         public function domains(){
             Helper::Load(["User"]);
 
-            $data       = $this->api->get_domains();
-            if(!$data && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // You should adapt the response from your API here.
+            $data = [
+                [
+                    "creation_date"     => "2024-05-01",
+                    "expiry_date"       => "2025-05-01",
+                    "domain"            => "example1.com",
+                ],
+                [
+                    "creation_date"     => "2023-08-15",
+                    "expiry_date"       => "2024-08-15",
+                    "domain"            => "example2.net",
+                ],
+                [
+                    "creation_date"     => "2022-11-20",
+                    "expiry_date"       => "2023-11-20",
+                    "domain"            => "example3.org",
+                ],
+                [
+                    "creation_date"     => "2024-02-10",
+                    "expiry_date"       => "2025-02-10",
+                    "domain"            => "example4.co",
+                ],
+                [
+                    "creation_date"     => "2021-07-05",
+                    "expiry_date"       => "2022-07-05",
+                    "domain"            => "example5.io",
+                ],
+            ];
 
             $result     = [];
 
-            if($data && is_array($data)){
-                foreach($data AS $res){
-                    $cdate      = isset($res["creation_date"]) ? DateManager::format("Y-m-d",$res["creation_date"]) : '';
-                    $edate      = isset($res["expration_date"]) ? DateManager::format("Y-m-d",$res["expration_date"]) : '';
-                    $domain     = isset($res["domain"]) ? $res["domain"] : '';
-                    if($domain){
-                        $domain      = idn_to_utf8($domain,0,INTL_IDNA_VARIANT_UTS46);
+            if($data)
+            {
+                foreach($data AS $res)
+                {
+                    $cdate      = $res["creation_date"];
+                    $edate      = $res["expiry_date"];
+                    $domain     = $res["domain"];
+
+                    if($domain)
+                    {
                         $order_id    = 0;
                         $user_data   = [];
-                        $is_imported = Models::$init->db->select("id,owner_id AS user_id")->from("users_products");
+
+                        $is_imported = WDB::select("id,owner_id AS user_id")->from("users_products");
                         $is_imported->where("type",'=',"domain","&&");
                         $is_imported->where("name",'=',$domain);
                         $is_imported = $is_imported->build() ? $is_imported->getAssoc() : false;
-                        if($is_imported){
+                        if($is_imported)
+                        {
                             $order_id   = $is_imported["id"];
                             $user_data  =  User::getData($is_imported["user_id"],"id,full_name,company_name","array");
                         }
 
+
                         $result[] = [
                             'domain'            => $domain,
-                            'creation_date'     => $cdate,
-                            'end_date'          => $edate,
+                            'creation_date'     => $cdate, // Format: YYYY-MM-DD
+                            'end_date'          => $edate, // Format: YYYY-MM-DD
                             'order_id'          => $order_id,
                             'user_data'        => $user_data,
                         ];
@@ -644,328 +755,169 @@
 
             return $result;
         }
-        
+
+        // If your API service provides price information for domain extensions, you can use this function.
         public function cost_prices($type='domain'){
 
-            $prices    = $this->api->cost_prices();
-            if(!$prices){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // The amount information must be in accordance with the ‘cost-currency’ defined in config.php.
 
-            $result = [];
-
-            if($type == "domain"){
-                foreach($prices AS $name=>$val){
-                    $result[$name] = [
-                        'register' => $val["register"],
-                        'transfer' => $val["transfer"],
-                        'renewal'  => $val["renewal"],
-                    ];
-                }
-            }
-            
-            return $result;
-        }
-        
-        public function import_domain($data=[]){
-            $config     = $this->config;
-
-            $imports = [];
-
-            Helper::Load(["Orders","Products","Money"]);
-
-            foreach($data AS $domain=>$datum){
-                $domain_parse   = Utility::domain_parser("http://".$domain);
-                $sld            = $domain_parse["host"];
-                $tld            = $domain_parse["tld"];
-                $user_id        = (int) $datum["user_id"];
-                if(!$user_id) continue;
-                $info           = $this->get_info([
-                    'domain'    => $domain,
-                    'name'      => $sld,
-                    'tld'       => $tld,
-                ]);
-                if(!$info) continue;
-
-                $user_data          = User::getData($user_id,"id,lang","array");
-                $ulang              = $user_data["lang"];
-                $locallang          = Config::get("general/local");
-                $productID          = Models::$init->db->select("id")->from("tldlist")->where("name","=",$tld);
-                $productID          = $productID->build() ? $productID->getObject()->id : false;
-                if(!$productID) continue;
-                $productPrice       = Products::get_price("register","tld",$productID);
-                $productPrice_amt   = $productPrice["amount"];
-                $productPrice_cid   = $productPrice["cid"];
-                $start_date         = $info["creation_time"];
-                $end_date           = $info["end_time"];
-                $year               = 1;
-
-                $options            = [
-                    "established"         => true,
-                    "group_name"          => Bootstrap::$lang->get_cm("website/account_products/product-type-names/domain",false,$ulang),
-                    "local_group_name"    => Bootstrap::$lang->get_cm("website/account_products/product-type-names/domain",false,$locallang),
-                    "category_id"         => 0,
-                    "domain"              => $domain,
-                    "name"                => $sld,
-                    "tld"                 => $tld,
-                    "dns_manage"          => true,
-                    "whois_manage"        => true,
-                    "transferlock"        => $info["transferlock"],
-                    "cns_list"            => isset($info["cns"]) ? $info["cns"] : [],
-                    "whois"               => isset($info["whois"]) ? $info["whois"] : [],
-                ];
-
-                if(isset($info["whois_privacy"]) && $info["whois_privacy"]){
-                    $options["whois_privacy"] = $info["whois_privacy"]["status"] == "enable";
-                    $wprivacy_endtime   = DateManager::ata();
-                    if(isset($info["whois_privacy"]["end_time"]) && $info["whois_privacy"]["end_time"]){
-                        $wprivacy_endtime = $info["whois_privacy"]["end_time"];
-                        $options["whois_privacy_endtime"] = $wprivacy_endtime;
-                    }
-                }
-
-                if(isset($info["ns1"]) && $info["ns1"]) $options["ns1"] = $info["ns1"];
-                if(isset($info["ns2"]) && $info["ns2"]) $options["ns2"] = $info["ns2"];
-                if(isset($info["ns3"]) && $info["ns3"]) $options["ns3"] = $info["ns3"];
-                if(isset($info["ns4"]) && $info["ns4"]) $options["ns4"] = $info["ns4"];
-
-
-
-                $order_data             = [
-                    "owner_id"          => (int) $user_id,
-                    "type"              => "domain",
-                    "product_id"        => (int) $productID,
-                    "name"              => $domain,
-                    "period"            => "year",
-                    "period_time"       => (int) $year,
-                    "amount"            => (float) $productPrice_amt,
-                    "total_amount"      => (float) $productPrice_amt,
-                    "amount_cid"        => (int) $productPrice_cid,
-                    "status"            => "active",
-                    "cdate"             => $start_date,
-                    "duedate"           => $end_date,
-                    "renewaldate"       => DateManager::Now(),
-                    "module"            => $config["meta"]["name"],
-                    "options"           => Utility::jencode($options),
-                    "unread"            => 1,
-                ];
-
-                $insert                 = Orders::insert($order_data);
-                if(!$insert) continue;
-
-                if(isset($options["whois_privacy"])){
-                    $amount = Money::exChange($this->whidden["amount"],$this->whidden["currency"],$productPrice_cid);
-                    $start  = DateManager::Now();
-                    $end    = isset($wprivacy_endtime) ? $wprivacy_endtime : DateManager::ata();
-                    Orders::insert_addon([
-                        'invoice_id' => 0,
-                        'owner_id' => $insert,
-                        "addon_key"     => "whois-privacy",
-                        'addon_id' => 0,
-                        'addon_name' => Bootstrap::$lang->get_cm("website/account_products/whois-privacy",false,$ulang),
-                        'option_id'  => 0,
-                        "option_name"   => Bootstrap::$lang->get("needs/iwwant",$ulang),
-                        'period'       => 1,
-                        'period_time'  => "year",
-                        'status'       => "active",
-                        'cdate'        => $start,
-                        'renewaldate'  => $start,
-                        'duedate'      => $end,
-                        'amount'       => $amount,
-                        'cid'          => $productPrice_cid,
-                        'unread'       => 1,
-                    ]);
-                }
-                $imports[] = $order_data["name"]." (#".$insert.")";
-            }
-            
-            if($imports){
-                $adata      = UserManager::LoginData("admin");
-                User::addAction($adata["id"],"alteration","domain-imported",[
-                    'module'   => $config["meta"]["name"],
-                    'imported'  => implode(", ",$imports),
-                ]);
-            }
-
-            return $imports;
+            return [
+                'com' => [
+                    'register' => 9.90,
+                    'transfer' => 9.90,
+                    'renewal' => 9.90,
+                ],
+                'net' => [
+                    'register' => 9.90,
+                    'transfer' => 9.90,
+                    'renewal' => 9.90,
+                ],
+                'org' => [
+                    'register' => 9.90,
+                    'transfer' => 9.90,
+                    'renewal' => 9.90,
+                ],
+            ];
         }
 
-        public function apply_import_tlds(){
+        //  If your API service provides the domain extension list, you can use this function.
+        public function tlds()
+        {
 
-            $cost_cid           = $this->config["settings"]["cost-currency"]; // Currency ID
+            // Use the following example for the error message.
+            /*
+            $this->error = "Error message here";
+            return false;
+            */
 
-            $prices             = $this->cost_prices();
-            if(!$prices) return false;
-
-            Helper::Load(["Products","Money"]);
-
-            $profit_rate        = Config::get("options/domain-profit-rate");
-
-            foreach($prices AS $name=>$val){
-                $api_cost_prices    = [
-                    'register' => $val["register"],
-                    'transfer' => $val["transfer"],
-                    'renewal'  => $val["renewal"],
-                ];
-
-                $paperwork      = 0;
-                $epp_code       = 1;
-                $dns_manage     = 1;
-                $whois_privacy  = 1;
-                $module         = $this->config["meta"]["name"];
-
-                $check          = Models::$init->db->select()->from("tldlist")->where("name","=",$name);
-
-                if($check->build()){
-                    $tld        = $check->getAssoc();
-                    $pid        = $tld["id"];
-
-                    $reg_price = Products::get_price("register","tld",$pid);
-                    $ren_price = Products::get_price("renewal","tld",$pid);
-                    $tra_price = Products::get_price("transfer","tld",$pid);
-
-                    $tld_cid    = $reg_price["cid"];
-
-
-                    $register_cost  = Money::deformatter($api_cost_prices["register"]);
-                    $renewal_cost   = Money::deformatter($api_cost_prices["renewal"]);
-                    $transfer_cost  = Money::deformatter($api_cost_prices["transfer"]);
-
-                    // ExChanges
-                    $register_cost  = Money::exChange($register_cost,$cost_cid,$tld_cid);
-                    $renewal_cost   = Money::exChange($renewal_cost,$cost_cid,$tld_cid);
-                    $transfer_cost  = Money::exChange($transfer_cost,$cost_cid,$tld_cid);
-
-
-                    $reg_profit     = Money::get_discount_amount($register_cost,$profit_rate);
-                    $ren_profit     = Money::get_discount_amount($renewal_cost,$profit_rate);
-                    $tra_profit     = Money::get_discount_amount($transfer_cost,$profit_rate);
-
-                    $register_sale  = $register_cost + $reg_profit;
-                    $renewal_sale   = $renewal_cost + $ren_profit;
-                    $transfer_sale  = $transfer_cost + $tra_profit;
-
-                    Products::set("domain",$pid,[
-                        'paperwork'         => $paperwork,
-                        'epp_code'          => $epp_code,
-                        'dns_manage'        => $dns_manage,
-                        'whois_privacy'     => $whois_privacy,
-                        'register_cost'     => $register_cost,
-                        'renewal_cost'      => $renewal_cost,
-                        'transfer_cost'     => $transfer_cost,
-                        'module'            => $module,
-                    ]);
-
-                    Models::$init->db->update("prices",[
-                        'amount' => $register_sale,
-                        'cid'    => $tld_cid,
-                    ])->where("id","=",$reg_price["id"])->save();
-
-
-                    Models::$init->db->update("prices",[
-                        'amount' => $renewal_sale,
-                        'cid'    => $tld_cid,
-                    ])->where("id","=",$ren_price["id"])->save();
-
-
-                    Models::$init->db->update("prices",[
-                        'amount' => $transfer_sale,
-                        'cid'    => $tld_cid,
-                    ])->where("id","=",$tra_price["id"])->save();
-
-                }
-                else{
-
-                    $tld_cid    = $cost_cid;
-
-                    $register_cost  = Money::deformatter($api_cost_prices["register"]);
-                    $renewal_cost   = Money::deformatter($api_cost_prices["renewal"]);
-                    $transfer_cost  = Money::deformatter($api_cost_prices["transfer"]);
-
-
-                    $reg_profit     = Money::get_discount_amount($register_cost,$profit_rate);
-                    $ren_profit     = Money::get_discount_amount($renewal_cost,$profit_rate);
-                    $tra_profit     = Money::get_discount_amount($transfer_cost,$profit_rate);
-
-                    $register_sale  = $register_cost + $reg_profit;
-                    $renewal_sale   = $renewal_cost + $ren_profit;
-                    $transfer_sale  = $transfer_cost + $tra_profit;
-
-                    $insert                 = Models::$init->db->insert("tldlist",[
-                        'status'            => "inactive",
-                        'cdate'             => DateManager::Now(),
-                        'name'              => $name,
-                        'paperwork'         => $paperwork,
-                        'epp_code'          => $epp_code,
-                        'dns_manage'        => $dns_manage,
-                        'whois_privacy'     => $whois_privacy,
-                        'currency'          => $tld_cid,
-                        'register_cost'     => $register_cost,
-                        'renewal_cost'      => $renewal_cost,
-                        'transfer_cost'     => $transfer_cost,
-                        'module'            => $module,
-                    ]);
-
-                    if($insert){
-                        $tld_id         = Models::$init->db->lastID();
-
-                        Models::$init->db->insert("prices",[
-                            'owner'     => "tld",
-                            'owner_id'  => $tld_id,
-                            'type'      => 'register',
-                            'amount'    => $register_sale,
-                            'cid'       => $tld_cid,
-                        ]);
-
-
-                        Models::$init->db->insert("prices",[
-                            'owner'     => "tld",
-                            'owner_id'  => $tld_id,
-                            'type'      => 'renewal',
-                            'amount'    => $renewal_sale,
-                            'cid'       => $tld_cid,
-                        ]);
-
-
-                        Models::$init->db->insert("prices",[
-                            'owner'     => "tld",
-                            'owner_id' => $tld_id,
-                            'type'      => 'transfer',
-                            'amount'    => $transfer_sale,
-                            'cid'       => $tld_cid,
-                        ]);
-                    }
-
-                }
-            }
-            return true;
+            // Example:
+            return [
+                'com' => [
+                    'min_years' => 1,
+                    'max_years' => 10,
+                    'whois_privacy' => true,
+                    'epp_code'      => true,
+                    'dns_manage'    => true,
+                    'price' => [
+                        'register'  => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'renewal'   => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'transfer'  => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                    ],
+                ],
+                'net' => [
+                    'min_years' => 1,
+                    'max_years' => 10,
+                    'whois_privacy' => true,
+                    'epp_code'      => true,
+                    'dns_manage'    => true,
+                    'price' => [
+                        'register'  => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'renewal'   => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'transfer'  => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                    ],
+                ],
+                'org' => [
+                    'min_years' => 1,
+                    'max_years' => 10,
+                    'whois_privacy' => true,
+                    'epp_code'      => true,
+                    'dns_manage'    => true,
+                    'price' => [
+                        'register'  => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'renewal'   => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'transfer'  => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                    ],
+                ],
+            ];
         }
 
         /*
-         *  DNS Record Functions
+         *  DNS Record Functions (Optional)
         */
 
         public function getDnsRecords()
         {
+            $domain     = idn_to_ascii($this->order["options"]["domain"],0,INTL_IDNA_VARIANT_UTS46);
+
             $result = [];
 
-            $request = $this->api->dnsListRecords($this->order["options"]["domain"]);
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            if($request)
-            {
-                foreach($request AS $r)
-                {
-                    $result[] = [
-                        'identity'      => $r["record_id"], // Sample Dns Record Identity ID e.g : 12345
-                        'type'          => $r["type"], // Record Type e.g : A or MX
-                        'name'          => $r["host"], // Record Host
-                        'value'         => $r["value"], // Record Value
-                        'ttl'           => $r["ttl"], // Record TTL
-                        'priority'      => $r["distance"], // Record Priority
-                    ];
-                }
-            }
+            $result[] = [
+                'identity'      => 12345, // Sample Dns Record Identity ID e.g : 12345
+                'type'          => "A", // Record Type e.g : A or MX
+                'name'          => "@", // Record Host
+                'value'         => "192.168.1.1", // Record Value
+                'ttl'           => 3600, // Record TTL
+                'priority'      => '', // Record Priority
+            ];
+
+            $result[] = [
+                'identity'      => 12346,
+                'type'          => "MX",
+                'name'          => "@",
+                'value'         => "mail.example.com",
+                'ttl'           => 14400,
+                'priority'      => 10,
+            ];
+
+            $result[] = [
+                'identity'      => 12347,
+                'type'          => "CNAME",
+                'name'          => "www",
+                'value'         => "example.com",
+                'ttl'           => 300,
+                'priority'      => '',
+            ];
+
+            $result[] = [
+                'identity'      => 12348,
+                'type'          => "TXT",
+                'name'          => "@",
+                'value'         => "v=spf1 include:example.com ~all",
+                'ttl'           => 86400,
+                'priority'      => '',
+            ];
+
+            $result[] = [
+                'identity'      => 12349,
+                'type'          => "AAAA",
+                'name'          => "@",
+                'value'         => "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+                'ttl'           => 7200,
+                'priority'      => '',
+            ];
 
 
             return $result;
@@ -974,101 +926,121 @@
 
         public function addDnsRecord($type,$name,$value,$ttl,$priority)
         {
-            if(!$priority) $priority = 10;
-            if(!$ttl) $ttl = 7207;
-
-            $apply              = $this->api->dnsAddRecord([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
-                'rrtype'        => $type,
-                'rrhost'        => $name,
-                'rrvalue'       => $value,
-                'rrdistance'    => $priority,
-                'rrttl'         => $ttl,
-            ]);
+                'type'          => $type,
+                'host'          => str_replace("@","",$name),
+                'address'       => $value,
+                'ttl'           => $ttl,
+                'distance'      => $priority,
+            ];
 
-            if(!$apply && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
 
         public function updateDnsRecord($type='',$name='',$value='',$identity='',$ttl='',$priority='')
         {
-            $list = $this->getDnsRecords();
-            if(!$list) return false;
-            $verified = false;
-            foreach($list AS $l) if($l["identity"] == $identity) $verified = true;
-            if(!$verified)
-            {
-                $this->error = "Invalid identity ID";
-                return false;
-            }
-
-            $apply      =        $this->api->dnsUpdateRecord([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
-                'rrid'          => $identity,
-                'rrhost'        => $name,
-                'rrvalue'       => $value,
-                'rrdistance'    => $priority,
-                'rrttl'         => $ttl,
-            ]);
+                'identity'      => $identity,
+                'type'          => $type,
+                'host'          => str_replace("@","",$name),
+                'address'       => $value,
+                'ttl'           => $ttl,
+                'distance'      => $priority,
+            ];
 
-            if(!$apply && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
+
 
             return true;
         }
 
         public function deleteDnsRecord($type='',$name='',$value='',$identity='')
         {
-            $list = $this->getDnsRecords();
-            if(!$list) return false;
-            $verified = false;
-
-            foreach($list AS $l) if($l["identity"] == $identity) $verified = true;
-
-            if(!$verified)
-            {
-                $this->error = "Invalid identity ID";
-                return false;
-            }
-
-            $apply      =        $this->api->dnsDeleteRecord([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
-                'rrid'          => $identity,
-            ]);
+                'identity'      => $identity,
+                'type'          => $type,
+                'host'          => str_replace("@","",$name),
+                'address'       => $value
+            ];
 
-            if(!$apply && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
 
         public function getDnsSecRecords()
         {
-            $result = [];
+            $domain     = $this->order["options"]["domain"];
+            $result     = [];
 
-            $request = $this->api->dnsSecListRecords($this->order["options"]["domain"]);
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            if($request)
-            {
-                foreach($request AS $r)
-                {
-                    $result[] = [
-                        'identity'      => '',
-                        'digest'        => $r["digest"],
-                        'key_tag'       => $r["key_tag"],
-                        'digest_type'   => $r["digest_type"],
-                        'algorithm'     => $r["algorithm"],
-                    ];
-                }
-            }
+            $result[] = [
+                'identity'      => 20001, // Sample DNSSEC Record Identity ID e.g : 20001
+                'digest'        => '49FD46E6C4B45C55D4AC', // Digest value in hexadecimal
+                'key_tag'       => 12345, // Key Tag, a 16-bit value used to identify a DNSKEY record
+                'digest_type'   => 2, // Digest Type (e.g., 1 = SHA-1, 2 = SHA-256)
+                'algorithm'     => 8, // Algorithm (e.g., 8 = RSA/SHA-256)
+            ];
+
+            $result[] = [
+                'identity'      => 20002,
+                'digest'        => 'AE098BD9E6789F65CDE2', // Another sample Digest value
+                'key_tag'       => 54321,
+                'digest_type'   => 1, // Using SHA-1 for this example
+                'algorithm'     => 5, // Algorithm (e.g., 5 = RSA/SHA-1)
+            ];
+
+            $result[] = [
+                'identity'      => 20003,
+                'digest'        => '56ACDDEF013453C6A457', // Sample Digest value
+                'key_tag'       => 67890,
+                'digest_type'   => 2, // Using SHA-256 for this example
+                'algorithm'     => 10, // Algorithm (e.g., 10 = RSA/SHA-512)
+            ];
+
+            $result[] = [
+                'identity'      => 20004,
+                'digest'        => '23AB45CD6790ED54B9F1', // Another sample Digest value
+                'key_tag'       => 11223,
+                'digest_type'   => 4, // Digest Type (e.g., 4 = SHA-384)
+                'algorithm'     => 13, // Algorithm (e.g., 13 = ECDSA Curve P-256 with SHA-256)
+            ];
+
+            $result[] = [
+                'identity'      => 20005,
+                'digest'        => 'AABBCCDDEEFF11223344', // Sample Digest value
+                'key_tag'       => 33445,
+                'digest_type'   => 3, // Digest Type (e.g., 3 = GOST R 34.11-94)
+                'algorithm'     => 12, // Algorithm (e.g., 12 = GOST R 34.10-2001)
+            ];
 
 
             return $result;
@@ -1077,95 +1049,86 @@
 
         public function addDnsSecRecord($digest,$key_tag,$digest_type,$algorithm)
         {
-            $apply              = $this->api->dnsSecAddRecord([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
                 'digest'        => $digest,
                 'keyTag'        => $key_tag,
                 'digestType'    => $digest_type,
                 'alg'           => $algorithm,
-            ]);
+            ];
 
-            if(!$apply && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
+
 
             return true;
         }
 
         public function deleteDnsSecRecord($digest,$key_tag,$digest_type,$algorithm,$identity='')
         {
-            $apply      =        $this->api->dnsSecDeleteRecord([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
+                'id'            => $identity,
                 'digest'        => $digest,
                 'keyTag'        => $key_tag,
                 'digestType'    => $digest_type,
                 'alg'           => $algorithm,
-            ]);
+            ];
 
-            if(!$apply && $this->api->error){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
 
         /*
-         *  Domain and Mail Forwarding Functions
+         *  Domain and Mail Forwarding Functions (Optional)
         */
 
         public function getForwardingDomain()
         {
-            $detail     = $this->api->getDomainInfo($this->order["options"]["domain"]);
+            $domain     = $this->order["options"]["domain"];
 
-            if($detail["forward_type"] == "N/A")
-                return [
-                    'status' => false,
-                ];
-            else
-            {
-                $forward_url        = $detail["forward_url"];
-                if(stristr($forward_url,'https://'))
-                    $protocol = "https";
-                else
-                    $protocol   = "http";
+            // Domain Forwarding is none
+            #return ['status' => false];
 
-                if(stristr($detail["reply"]["forward_type"],'302'))
-                    $method = 302;
-                else
-                    $method = 301;
+            // Domain Forwarding 301 redirect
+            return [
+                'status'    => true,
+                'method'    => 301,
+                'protocol'  => "https", // htp or https
+                'domain'    => "example2.com",
+            ];
 
-
-                $domain         = str_replace($protocol."://","",$forward_url);
-
-                if($domain == $this->order["options"]["domain"]) return ['status' => false];
-
-
-
-                return [
-                    'status' => true,
-                    'method'    => $method,
-                    'protocol'  => $protocol,
-                    'domain'    => $domain,
-                ];
-            }
         }
 
         public function setForwardingDomain($protocol='',$method='',$domain='')
         {
-            $apply      = $this->api->domainForward([
+
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
                 'protocol'      => $protocol,
                 'address'       => $domain,
                 'method'        => $method,
-            ]);
+            ];
 
-            if(!$apply)
-            {
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
@@ -1173,7 +1136,7 @@
         public function cancelForwardingDomain()
         {
             $apply      = $this->api->cancelDomainForward([
-                'domain'        => $this->order["options"]["domain"]
+                'domain'        => $this->order["options"]["domain"],
             ]);
 
             if(!$apply){
@@ -1186,76 +1149,91 @@
 
         public function getEmailForwards()
         {
-            $result = [];
+            $domain     = $this->order["options"]["domain"];
+            $result     = [];
 
-            $request = $this->api->listEmailForwards($this->order["options"]["domain"]);
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
-            if($request && isset($request["addresses"]) && $request["addresses"])
-            {
-                foreach($request["addresses"] AS $l)
-                {
-                    $to = $l["forwards_to"] ?? '';
+            $result[] = [
+                'identity'      => 1234,
+                'prefix'        => "info",
+                'target'        => "info@gmail.com",
+            ];
 
-                    if(is_array($to)) $to = $to[0];
+            $result[] = [
+                'identity'      => 1235,
+                'prefix'        => "dev",
+                'target'        => "dev@gmail.com",
+            ];
 
-                    $result[] = [
-                        'identity'      => '',
-                        'prefix'        => $l["username"],
-                        'target'        => $to,
-                    ];
+            $result[] = [
+                'identity'      => 1236,
+                'prefix'        => "bill",
+                'target'        => "bill@gmail.com",
+            ];
 
-                }
-            }
 
             return $result;
         }
 
         public function addForwardingEmail($prefix='',$target='')
         {
-            $apply      = $this->api->configureEmailForward([
-                'domain'        => $this->order["options"]["domain"],
-                'email'         => $prefix,
-                'forward1'      => $target,
-            ]);
+            $sample_params = [
+                'domain'       => $this->order["options"]["domain"],
+                'email'        => $prefix,
+                'forward'      => $target,
+            ];
 
-            if(!$apply)
-            {
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
 
         public function updateForwardingEmail($prefix='',$target='',$target_new='',$identity='')
         {
-            $apply      = $this->api->configureEmailForward([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
                 'email'         => $prefix,
-                'forward1'      => $target,
+                'forward'       => $target_new,
                 'identity'      => $identity,
-            ]);
+            ];
 
-            if(!$apply)
-            {
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
 
         public function deleteForwardingEmail($prefix='',$target='',$identity='')
         {
-            $apply      = $this->api->deleteEmailForward([
+            $sample_params = [
                 'domain'        => $this->order["options"]["domain"],
                 'email'         => $prefix,
-            ]);
+                'identity'      => $identity,
+            ];
 
-            if(!$apply){
-                $this->error = $this->api->error;
-                return false;
-            }
+            // Send the $sample_params variable to the API.
+
+            /*
+            // Sample error message:
+            $this->error = "Error message";
+            return false;
+            */
 
             return true;
         }
