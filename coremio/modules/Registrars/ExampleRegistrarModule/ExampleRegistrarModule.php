@@ -12,12 +12,12 @@
 
         public function config_fields($data=[])
         {
-            // $data --               Retrieves previously saved data.
-            // Example              : echo isset($data["example1"]) ? $data["example1"] : NULL;
+            // $data                : Retrieves previously saved data.
             // 'name'               : Name of the Configuration option
             // 'description'        : Description of the configuration option
-            // 'type'               : Type of configuration optio
-            // 'width'              : Width of configuration option, percent % (5,10,20,30,40,50,...100 vb)
+            // 'type'               : Type of configuration option
+            // 'wrap_width'         : Wrapper width of the configuration option, percentage % (5,10,20,30,30,40,40,50,...100)
+            // 'width'              : Width of configuration option, percent % (5,10,20,30,40,50,...100)
             // 'rows'               : Number of lines of text field type
             // 'value'              : Default Value
             // 'placeholder'        : Value to appear if field is left blank
@@ -27,78 +27,86 @@
             // 'dec_pos'            : Determines the position of description information, type "L" to show under the name, type 'R' to show under the item
 
             return [
-                'example1'          => [
-                    'name'              => "Text Box",
+                'username'          => [
+                    'name'              => "Username",
                     'description'       => "Description for text box field",
                     'type'              => "text",
-                    'width'             => "50",
-                    'value'             => "sample",
+                    'value'             => $data["username"] ?? '',
                     'placeholder'       => "Sample placeholder",
+                    'wrap_width'        => 100,
+                    'width'             => 50,
                 ],
-                'example2'          => [
-                    'name'              => "Password Box",
-                    'description'       => "Description for password box field",
+                'apiKey'          => [
                     'type'              => "password",
-                    'width'             => "50",
-                    'value'             => "sample",
+                    'name'              => "API Key",
+                    'description'       => "Description for password box field",
+                    'value'             => $data["apiKey"] ?? '',
                     'placeholder'       => "Sample placeholder",
+                    'wrap_width'        => 100,
+                    'width'             => 50,
                 ],
-                'example3'          => [
-                    'name'              => "Confirm Button",
-                    'description'       => "Description for confirm button",
+                'test-mode'          => [
                     'type'              => "approval",
-                    'checked'           => true,
+                    'name'              => "Test Mode",
+                    'description'       => "Description for confirm button",
+                    'checked'           => $data["test-mode"] ?? false, // true or false
+                    'wrap_width'        => 100,
                 ],
                 'example4'          => [
+                    'type'              => "dropdown",
                     'name'              => "Drop-down Menu 1",
                     'description'       => "Description for Drop-down menu 1",
-                    'type'              => "dropdown",
                     'options'           => "Option 1,Option 2,Option 3,Option 4",
-                    'value'             => "Option 2",
+                    'value'             => $data["example4"] ?? "Option 2",
+                    'wrap_width'        => 100,
                 ],
                 'example5'          => [
+                    'type'              => "dropdown",
                     'name'              => "Drop-down Menu 2",
                     'description'       => "Description for Drop-down menu 2",
-                    'type'              => "dropdown",
                     'options'           => [
                         'opt1'     => "Option 1",
                         'opt2'     => "Option 2",
                         'opt3'     => "Option 3",
                         'opt4'     => "Option 4",
                     ],
-                    'value'             => "opt2",
+                    'value'             => $data["example5"] ?? "opt2",
+                    'wrap_width'        => 100,
                 ],
                 'example6'          => [
+                    'type'              => "radio",
                     'name'              => "Circular (Radio) Button 1",
                     'description'       => "Description for Circular (Radio) Button 1",
                     'width'             => 40,
                     'description_pos'   => 'L',
                     'is_tooltip'        => true,
-                    'type'              => "radio",
                     'options'           => "Option 1,Option 2,Option 3,Option 4",
-                    'value'             => "Option 2",
+                    'value'             => $data["example6"] ?? "Option 2",
+                    'wrap_width'        => 100,
                 ],
                 'example7'          => [
+                    'type'              => "radio",
                     'name'              => "Circular (Radio) Button 2",
                     'description'       => "Description for Circular (Radio) Button 2",
                     'description_pos'   => 'L',
                     'is_tooltip'        => true,
-                    'type'              => "radio",
                     'options'           => [
                         'sec1'     => "Option 1",
                         'sec2'     => "Option 2",
                         'sec3'     => "Option 3",
                         'sec4'     => "Option 4",
                     ],
-                    'value'             => "sec2",
+                    'value'             => $data["example7"] ?? '',
+                    'wrap_width'        => 100,
                 ],
                 'example8'          => [
+                    'type'              => "textarea",
                     'name'              => "Text Field",
                     'description'       => "Description for Text Field",
                     'rows'              => "3",
-                    'type'              => "textarea",
-                    'value'             => "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
+                    'value'             => $data["example8"] ?? '',
                     'placeholder'       => "Sample placeholder",
+                    'wrap_width'        => 100,
                 ],
             ];
         }
@@ -432,12 +440,18 @@
         public function ModifyTransferLock($params=[],$status=''){
             $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
 
-            $modify     = $this->api->modify_transfer_lock($domain,$status == "enable" ? "locked" : "unlocked");
-            if(!$modify)
-            {
-                $this->error = $this->api->error;
-                return false;
-            }
+            $post = [
+                'action'          => "change_transfer_lock",
+                'domain'          => $domain,
+                'status'          => $status == "enable" ? "locked" : "unlocked",
+            ];
+            // api request code here
+
+
+            /*
+            $this->error = "Error message here";
+            return false;
+            */
 
             return true;
         }
