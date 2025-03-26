@@ -5,12 +5,11 @@
         // Variables and functions previously defined in this class were transferred to the ‘RegistrarModule’ parent.
         // The $this->api variable defined in functions is an imaginary variable.
 
-        function __construct($args=[]){
-            $this->name = __CLASS__;
+        function __construct(){
             parent::__construct(__CLASS__);
         }
 
-        public function config_fields($data=[])
+        public function config_fields($data=[]):array
         {
             // $data                : Retrieves previously saved data.
             // 'name'               : Name of the Configuration option
@@ -33,8 +32,6 @@
                     'type'              => "text",
                     'value'             => $data["username"] ?? '',
                     'placeholder'       => "Sample placeholder",
-                    'wrap_width'        => 100,
-                    'width'             => 50,
                 ],
                 'apiKey'          => [
                     'type'              => "password",
@@ -42,15 +39,12 @@
                     'description'       => "Description for password box field",
                     'value'             => $data["apiKey"] ?? '',
                     'placeholder'       => "Sample placeholder",
-                    'wrap_width'        => 100,
-                    'width'             => 50,
                 ],
                 'test-mode'          => [
                     'type'              => "approval",
                     'name'              => "Test Mode",
                     'description'       => "Description for confirm button",
                     'checked'           => $data["test-mode"] ?? false, // true or false
-                    'wrap_width'        => 100,
                 ],
                 'example4'          => [
                     'type'              => "dropdown",
@@ -58,7 +52,6 @@
                     'description'       => "Description for Drop-down menu 1",
                     'options'           => "Option 1,Option 2,Option 3,Option 4",
                     'value'             => $data["example4"] ?? "Option 2",
-                    'wrap_width'        => 100,
                 ],
                 'example5'          => [
                     'type'              => "dropdown",
@@ -71,18 +64,15 @@
                         'opt4'     => "Option 4",
                     ],
                     'value'             => $data["example5"] ?? "opt2",
-                    'wrap_width'        => 100,
                 ],
                 'example6'          => [
                     'type'              => "radio",
                     'name'              => "Circular (Radio) Button 1",
                     'description'       => "Description for Circular (Radio) Button 1",
-                    'width'             => 40,
                     'description_pos'   => 'L',
                     'is_tooltip'        => true,
                     'options'           => "Option 1,Option 2,Option 3,Option 4",
                     'value'             => $data["example6"] ?? "Option 2",
-                    'wrap_width'        => 100,
                 ],
                 'example7'          => [
                     'type'              => "radio",
@@ -97,7 +87,6 @@
                         'sec4'     => "Option 4",
                     ],
                     'value'             => $data["example7"] ?? '',
-                    'wrap_width'        => 100,
                 ],
                 'example8'          => [
                     'type'              => "textarea",
@@ -106,7 +95,6 @@
                     'rows'              => "3",
                     'value'             => $data["example8"] ?? '',
                     'placeholder'       => "Sample placeholder",
-                    'wrap_width'        => 100,
                 ],
             ];
         }
@@ -132,8 +120,10 @@
         }
 
         // Use this method if domain availability checking is supported. (Optional)
+
         public function questioning($sld=NULL,$tlds=[]){
             $sld = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
+
             if(!is_array($tlds)) $tlds = [$tlds];
 
             $result         = [];
@@ -164,6 +154,7 @@
         public function register($domain='',$sld='',$tld='',$year=1,$dns=[],$whois=[],$wprivacy=false,$eppCode=''){
             $domain             = idn_to_ascii($domain,0,INTL_IDNA_VARIANT_UTS46);
             $sld                = idn_to_ascii($sld,0,INTL_IDNA_VARIANT_UTS46);
+
 
             $api_params         = [
                 'Domain'        => $domain,
@@ -240,7 +231,15 @@
 
             // This result should return if the domain name was registered successfully or was previously registered.
 
-            $response       = $this->api->register_domain($api_params);
+            #$response       = $this->api->register_domain($api_params);
+            $response        = [
+                'status' => "error",
+                'message' => "test error message",
+                'entity_id' => 0,
+                'PrivacyProtection' => [
+                    'status' => "active",
+                ],
+            ];
 
             if($response && $response['status'] == 'successful')
             {
@@ -483,6 +482,18 @@
         }
 
         // Optional function
+        public function restore($params=[]){
+            $domain     = idn_to_ascii($params["domain"],0,INTL_IDNA_VARIANT_UTS46);
+
+            // Failed:
+            #$this->error = "Failed restore message";
+            #return false;
+
+            // Successful:
+            return true;
+        }
+
+        // Optional function
         public function suspend($params=[]){
             return true;
         }
@@ -493,7 +504,7 @@
         }
 
         // Optional function
-        public function terminate($params=[]){
+        public function cancelled($params=[]){
             return true;
         }
 
@@ -865,6 +876,48 @@
                         ],
                         'transfer'  => [
                             'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                    ],
+                ],
+                'xa' => [
+                    'min_years' => 1,
+                    'max_years' => 5,
+                    'whois_privacy' => false,
+                    'epp_code'      => true,
+                    'dns_manage'    => true,
+                    'price' => [
+                        'register'  => [
+                            'amount' => 7.90,
+                            'currency' => 'USD',
+                        ],
+                        'renewal'   => [
+                            'amount' => 9.90,
+                            'currency' => 'USD',
+                        ],
+                        'transfer'  => [
+                            'amount' => 6.90,
+                            'currency' => 'USD',
+                        ],
+                    ],
+                ],
+                'xb' => [
+                    'min_years' => 1,
+                    'max_years' => 5,
+                    'whois_privacy' => true,
+                    'epp_code'      => false,
+                    'dns_manage'    => true,
+                    'price' => [
+                        'register'  => [
+                            'amount' => 5.90,
+                            'currency' => 'USD',
+                        ],
+                        'renewal'   => [
+                            'amount' => 4.90,
+                            'currency' => 'USD',
+                        ],
+                        'transfer'  => [
+                            'amount' => 5.90,
                             'currency' => 'USD',
                         ],
                     ],
